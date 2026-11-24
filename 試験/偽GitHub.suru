@@ -1,0 +1,97 @@
+# 試験のための偽の GitHub(決まった道に決まった答えを返す。ほかの道は、届いた要求をそのまま JSON にして返す)
+「標準」 を 読み込んで 使う
+「JSON」 を 読み込んで 使う
+「通信」 を 読み込む
+
+# --- 要求を読む ---
+
+文字列 を 見出し分解する は 文字列 の リスト
+行 を 見出し分解する とは
+  （部分 の 先頭 を 空白除去して 小文字にする） と （部分 の 残り を 「:」 で 結合して 空白除去する）
+ただし 部分 とは 行 を 「:」 で 分割する
+
+数 から 見出し収集する は 文字列 の リスト の リスト の 動作
+接続 から 見出し収集する とは 手順
+  行 とは 接続 から 通信内の行受信した 結果 を 空白除去する
+  もし 行 が 「」 ならば 空 を 結果にする そうでなければ （行 を 見出し分解する） を （接続 から 見出し収集する） の 結果 に 挿入する
+
+# 同じ名前が2つ以上あれば「, 」でつなぐ(HTTP の決まりどおり)
+文字列 の リスト の リスト から 文字列 を 見出し引出する は 文字列
+頭 から 名前 を 見出し引出する とは （（頭 から （項目 を 受け取って 項目 の 先頭 が 名前 を 返すこと） で 選別する） の それぞれ を 末尾取得する） を 「, 」 で 結合する
+
+文字列 の リスト を 末尾取得する は 文字列
+項目 を 末尾取得する とは 項目 の 最後
+
+# --- 答えを作る ---
+
+数 で 文字列 を 文字列 から 返答文にする は 文字列
+状態 で 追加見出し を 本文 から 返答文にする とは
+  「HTTP/1.1 」 + （状態 を 文字列化する） + 「 X」 + 復帰改行 + 追加見出し + 「Content-Type: application/json」 + 復帰改行 + 「Content-Length: 」 + （本文 を バイト数にして 文字列化する） + 復帰改行 + 復帰改行 + 本文
+
+文字列 を 正常返答にする は 文字列
+本文 を 正常返答にする とは 200 で 「」 を 本文 から 返答文にする
+
+文字列 を 文字JSONにする は JSON
+s を 文字JSONにする とは s の JSON文字列
+
+文字列 を 文字列 で 項目化する は JSON項目
+名 を 値 で 項目化する とは 項目名 は 名 で 項目値 は （値 の JSON文字列） の JSON項目
+
+# 届いた要求をそのまま返す
+文字列 で 文字列 を 文字列 の リスト の リスト へ 文字列 から こだま返答する は 文字列
+方法 で 道 を 頭 へ 本文 から こだま返答する とは
+  （（「method」 を 方法 で 項目化する） と （「path」 を 道 で 項目化する） と （「auth」 を （頭 から 「authorization」 を 見出し引出する） で 項目化する） と （「accept」 を （頭 から 「accept」 を 見出し引出する） で 項目化する） と （「version」 を （頭 から 「x-github-api-version」 を 見出し引出する） で 項目化する） と （「type」 を （頭 から 「content-type」 を 見出し引出する） で 項目化する） と （「body」 を 本文 で 項目化する）） の JSON物 を JSON文字列にして 正常返答にする
+
+基 とは 「/repos/o/r」
+
+文字列 で 文字列 を 文字列 の リスト の リスト へ 文字列 から 振分する は 文字列
+「GET」 で 「/repos/o/r」 を 頭 へ 本文 から 振分する とは 「{"full_name":"o/r","default_branch":"main","private":false}」 を 正常返答にする
+「GET」 で 「/repos/o/r/git/trees/main?recursive=1」 を 頭 へ 本文 から 振分する とは 「{"sha":"t1","tree":[{"path":"a.txt","type":"blob"},{"path":"文書","type":"tree"}],"truncated":true}」 を 正常返答にする
+「GET」 で 「/repos/o/r/contents/%E6%96%87%E6%9B%B8/%E8%AA%AC%E6%98%8E.md?ref=feature%2Fx」 を 頭 へ 本文 から 振分する とは 「{"type":"file","encoding":"base64","size":22,"sha":"f1","content":"44GT44KT44Gr44Gh44Gv\n CjLooYznm64=\n"}」 を 正常返答にする
+「GET」 で 「/repos/o/r/contents/%E6%96%87%E6%9B%B8」 を 頭 へ 本文 から 振分する とは 「[{"name":"説明.md"}]」 を 正常返答にする
+「GET」 で 「/repos/o/r/contents/big.bin」 を 頭 へ 本文 から 振分する とは 「{"type":"file","encoding":"none","size":2000000,"sha":"f2","content":""}」 を 正常返答にする
+「GET」 で 「/repos/o/r/labels?per_page=100」 を 頭 へ 本文 から 振分する とは
+  200 で （「Link: <http://127.0.0.1:18531/repos/o/r/labels?per_page=100&page=2>; rel="next", <http://127.0.0.1:18531/repos/o/r/labels?per_page=100&page=2>; rel="last"」 + 復帰改行） を 「[{"name":"bug"},{"name":"質問"}]」 から 返答文にする
+「GET」 で 「/repos/o/r/labels?per_page=100&page=2」 を 頭 へ 本文 から 振分する とは
+  200 で （「Link: <http://127.0.0.1:18531/repos/o/r/labels?per_page=100>; rel="prev"」 + 復帰改行） を 「[{"name":"docs"}]」 から 返答文にする
+「GET」 で 「/repos/o/r/issues?state=open&labels=bug,%E8%B3%AA%E5%95%8F&per_page=100」 を 頭 へ 本文 から 振分する とは 「[{"number":1,"title":"一"},{"number":2,"title":"PR","pull_request":{"url":"x"}}]」 を 正常返答にする
+「GET」 で 「/repos/o/r/branches/feature%2Fx」 を 頭 へ 本文 から 振分する とは 「{"name":"feature/x","commit":{"sha":"abc123"}}」 を 正常返答にする
+「GET」 で 「/repos/o/x401」 を 頭 へ 本文 から 振分する とは 401 で 「」 を 「{"message":"Bad credentials"}」 から 返答文にする
+「GET」 で 「/repos/o/limit」 を 頭 へ 本文 から 振分する とは 403 で （「X-RateLimit-Remaining: 0」 + 復帰改行 + 「X-RateLimit-Reset: 1700000000」 + 復帰改行） を 「{"message":"API rate limit exceeded"}」 から 返答文にする
+「GET」 で 「/repos/o/slow」 を 頭 へ 本文 から 振分する とは 429 で （「Retry-After: 30」 + 復帰改行） を 「{"message":"secondary rate limit"}」 から 返答文にする
+「GET」 で 「/repos/o/nope」 を 頭 へ 本文 から 振分する とは 403 で 「」 を 「{"message":"Resource not accessible by personal access token"}」 から 返答文にする
+「GET」 で 「/repos/o/missing」 を 頭 へ 本文 から 振分する とは 404 で 「」 を 「{"message":"Not Found"}」 から 返答文にする
+「POST」 で 「/repos/o/bad/issues」 を 頭 へ 本文 から 振分する とは 422 で 「」 を 「{"message":"Validation Failed","errors":[{"resource":"Issue","field":"title","code":"missing_field"},{"message":"ラベルが長すぎます"}]}」 から 返答文にする
+「GET」 で 「/repos/o/html」 を 頭 へ 本文 から 振分する とは 「<html>」 を 正常返答にする
+「DELETE」 で 道 を 頭 へ 本文 から 振分する とは 「HTTP/1.1 204 No Content」 + 復帰改行 + 復帰改行
+「POST」 で 「/graphql」 を 頭 へ 本文 から 振分する とは
+  もし 本文 が 「bad」 を 含有である ならば 「{"data":null,"errors":[{"message":"Field 'bad' doesn't exist"}]}」 を 正常返答にする
+  そうでなければ 「{"data":{"viewer":{"login":"me"}},"echo":」 + （本文 を 文字JSONにして JSON文字列にする） + 「}」 を 正常返答にする
+「POST」 で 「/api/graphql」 を 頭 へ 本文 から 振分する とは 「{"data":{"enterprise":true}}」 を 正常返答にする
+方法 で 道 を 頭 へ 本文 から 振分する とは 方法 で 道 を 頭 へ 本文 から こだま返答する
+
+数 を 一件返答する は 数 の 動作
+口 を 一件返答する とは 手順
+  接続 とは 口 から 通信内の接続受付した 結果
+  部分 とは 接続 から 通信内の行受信した 結果 を 空白除去して 「 」 で 分割する
+  頭 とは 接続 から 見出し収集した 結果
+  長さ文 とは 頭 から 「content-length」 を 見出し引出する
+  本文 とは 接続 から 長さ文 を 本文受信した 結果
+  （部分 の 先頭） で （部分 から 2 を 番目取得する） を 頭 へ 本文 から 振分して 接続 へ 通信内の送信する
+  接続 を 通信内の切断する
+
+数 から 文字列 を 本文受信する は 文字列 の 動作
+接続 から 長さ文 を 本文受信する とは
+  もし 長さ文 が 「」 または 長さ文 が 「0」 ならば 「」 を 結果にする そうでなければ 接続 から （長さ文 を 数値にする） を 通信内の受信する
+
+# n 件に答えてから閉じる
+数 を 数 で 偽GitHub動作する は 数 の 動作
+口 を n で 偽GitHub動作する とは 手順
+  もし n = 0 ならば 口 を 通信内の切断する そうでなければ 口 を n で 一回動作する
+
+数 を 数 で 一回動作する は 数 の 動作
+口 を n で 一回動作する とは 手順
+  口 を 一件返答する
+  口 を n - 1 で 偽GitHub動作する
+
+見出し分解する と 見出し収集する と 見出し引出する と 末尾取得する と 返答文にする と 正常返答にする と 文字JSONにする と 項目化する と こだま返答する と 振分する と 本文受信する と 一件返答する と 一回動作する と 基 は 非公開とする

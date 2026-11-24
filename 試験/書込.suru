@@ -1,0 +1,67 @@
+「試験」 を 読み込んで 使う
+「標準」 を 読み込んで 使う
+「JSON」 を 読み込んで 使う
+「スレッド」 を 読み込む
+「通信」 を 読み込む
+「GitHub」 を 読み込んで 使う
+「偽GitHub」 を 読み込む
+
+（甲 と 文字列） の 成否 を 理由にする は 文字列
+（v という 成功） を 理由にする とは 「(成功しました)」
+（e という 失敗） を 理由にする とは e
+
+基 とは 「http://127.0.0.1:18533」
+
+# 偽の GitHub が返した「届いた要求」から、方法・道・本文を「 」でつなぐ
+（JSON と 文字列） の 成否 を こだま文にする は 文字列
+r を こだま文にする とは （v から 「method」 を GitHub文字値取得する） + 「 」 + （v から 「path」 を GitHub文字値取得する） + 「 」 + （v から 「body」 を GitHub文字値取得する）
+ただし v とは r を 取出する
+
+書く試験する は 数 の 動作
+書く試験する とは 手順
+  口 とは 18533 を 通信内の待受開始した 結果
+  t とは （口 を 12 で 偽GitHub内の偽GitHub動作する） を スレッド内の並行開始した 結果
+  w とは 「試し鍵」 を GitHub窓口にして 基 で GitHub基点設定する
+  案 とは 題 は 「題」 で 本文 は 「本文」 で ラベル群 は （「bug」 を 空 に 挿入する） で 担当群 は （「me」 を 空 に 挿入する） の GitHubIssue案
+  作 とは w で 「o/r」 に 案 を GitHubIssue作成した 結果
+  （作 を こだま文にする） を 「POST /repos/o/r/issues {"title":"題","body":"本文","labels":["bug"],"assignees":["me"]}」 に 一致確認する
+  （（作 を 取出する） から 「type」 を GitHub文字値取得する） を 「application/json」 に 一致確認する
+  直 とは w で 「o/r」 に 3 を （（「title」 と （「新」 の JSON文字列） の JSON項目） を 空 に 挿入する） から GitHubIssue更新した 結果
+  （直 を こだま文にする） を 「PATCH /repos/o/r/issues/3 {"title":"新"}」 に 一致確認する
+  閉 とは w で 「o/r」 に 3 を 「not_planned」 から GitHubIssue閉鎖した 結果
+  （閉 を こだま文にする） を 「PATCH /repos/o/r/issues/3 {"state":"closed","state_reason":"not_planned"}」 に 一致確認する
+  開 とは w で 「o/r」 に 3 を GitHubIssue再開した 結果
+  （開 を こだま文にする） を 「PATCH /repos/o/r/issues/3 {"state":"open"}」 に 一致確認する
+  評 とは w で 「o/r」 に 3 を 「こんにちは "引用"」 から GitHubコメント作成した 結果
+  （評 を こだま文にする） を 「POST /repos/o/r/issues/3/comments {"body":"こんにちは \"引用\""}」 に 一致確認する
+  改 とは w で 「o/r」 に 77 を 「直した」 から GitHubコメント更新した 結果
+  （改 を こだま文にする） を 「PATCH /repos/o/r/issues/comments/77 {"body":"直した"}」 に 一致確認する
+  消 とは w で 「o/r」 に 77 を GitHubコメント削除した 結果
+  （消 を 取出する） を JSON無 に 一致確認する
+  PR案 とは 題 は 「直す」 で 本文 は 「説明」 で 頭 は 「claude/x」 で 基 は 「main」 で 下書き は 真 の GitHubPR案
+  引 とは w で 「o/r」 に PR案 を GitHubPR作成した 結果
+  （引 を こだま文にする） を 「POST /repos/o/r/pulls {"title":"直す","body":"説明","head":"claude/x","base":"main","draft":true}」 に 一致確認する
+  # GraphQL
+  問 とは w で 「query { viewer { login } }」 を （空 の JSON物） から GitHubGraphQL呼出した 結果 を 取出する
+  （（問 から 「viewer」 を JSON取得する） から 「login」 を GitHub文字値取得する） を 「me」 に 一致確認する
+  誤 とは w で 「query { bad }」 を （空 の JSON物） から GitHubGraphQL呼出した 結果
+  （誤 を 理由にする） を 「GitHub の GraphQL で失敗しました: Field 'bad' doesn't exist」 に 一致確認する
+  # GitHub Enterprise の基点(…/api/v3)なら GraphQL は …/api/graphql
+  企 とは （「試し鍵」 を GitHub窓口にして 基 + 「/api/v3/」 で GitHub基点設定する）
+  社 とは 企 で 「query { x }」 を （空 の JSON物） から GitHubGraphQL呼出した 結果 を 取出する
+  （社 から 「enterprise」 を JSON取得する） を （真 の JSON真偽） に 一致確認する
+  # 鍵が「」なら Authorization を送らない
+  無鍵 とは （「」 を GitHub窓口にして 基 で GitHub基点設定する）
+  見 とは 無鍵 で 「o/r」 に 3 を GitHubIssue取得した 結果 を 取出する
+  （見 から 「auth」 を GitHub文字値取得する） を 「」 に 一致確認する
+  t を スレッド内の合流する
+
+書く前検査試験する は 数 の 動作
+書く前検査試験する とは 手順
+  w とは 「試し鍵」 を GitHub窓口にして 「http://127.0.0.1:9」 で GitHub基点設定する
+  a とは w で 「o/r」 に 3 を 「done」 から GitHubIssue閉鎖した 結果
+  （a を 理由にする） を 「閉じる理由は completed か not_planned です(『done』)」 に 一致確認する
+  案 とは 題 は 「直す」 で 本文 は 「」 で 頭 は 「」 で 基 は 「main」 で 下書き は 偽 の GitHubPR案
+  b とは w で 「o/r」 に 案 を GitHubPR作成した 結果
+  （b を 理由にする） を 「PR には題と頭(head)と基(base)が要ります」 に 一致確認する
+  0 を 結果にする
